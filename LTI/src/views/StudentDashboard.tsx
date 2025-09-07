@@ -19,6 +19,8 @@ import {
 import { mockExercises } from "@/mocks/Exercises/mockExercises";
 import { Student } from "@/types/students/student";
 import { mockUsers } from "@/mocks/Users/mockUsers";
+import { StudentExercisesView } from "@/views/student/StudentExercisesView";
+import { StudentAchievementsView } from "@/views/student/StudentAchievementsView";
 
 export const StudentDashboard: React.FC = () => {
     const { user } = useAuth();
@@ -66,6 +68,12 @@ export const StudentDashboard: React.FC = () => {
                         title: "5 Ejercicios Completados",
                         description: "Completaste 5 ejercicios.",
                         dateEarned: "2024-01-20",
+                    },
+                    {
+                        id: "a3",
+                        title: "Racha de 3 días",
+                        description: "Mantuviste una racha de 3 días consecutivos.",
+                        dateEarned: "2024-01-25",
                     }
                 ]
             };
@@ -74,27 +82,19 @@ export const StudentDashboard: React.FC = () => {
         }
     }, [user]);
 
-
     if (!user || !studentData) return <div>Cargando...</div>;
 
     const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
-    return (
-        <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Sidebar */}
-            <UnifiedSidebar
-                activeSection={activeSection}
-                onSectionChange={setActiveSection}
-                userRole="student"
-                userName={user.name}
-                isDarkMode={isDarkMode}
-                onThemeToggle={toggleTheme}
-                onContactAdmin={() => alert("Contacto con admin")}
-            />
-
-            {/* Contenido principal */}
-            <main className="flex-1 overflow-y-auto p-6">
-                {activeSection === "inicio" && (
+    const renderContent = () => {
+        switch (activeSection) {
+            case "ejercicios":
+                return <StudentExercisesView />;
+            case "logros":
+                return <StudentAchievementsView studentData={studentData} />;
+            case "inicio":
+            default:
+                return (
                     <div>
                         {/* Estadísticas principales */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -142,13 +142,13 @@ export const StudentDashboard: React.FC = () => {
                                                 Puntos
                                             </p>
                                             <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                                                {studentData.courseProgress.completedPercentage * 10}
+                                                {studentData.courseProgress.completedPercentage * 10 || 10}
                                             </p>
                                         </div>
                                         <Star className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                                     </div>
                                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                                        Nivel {Math.floor(studentData.courseProgress.completedPercentage / 10)}
+                                        Nivel {Math.floor(studentData.courseProgress.completedPercentage / 10) || 2}
                                     </p>
                                 </CardContent>
                             </Card>
@@ -169,7 +169,7 @@ export const StudentDashboard: React.FC = () => {
                                 </CardContent>
                             </Card>
                         </div>
-                        <br />
+
                         {/* Lista rápida de ejercicios */}
                         <Card>
                             <CardHeader>
@@ -200,7 +200,26 @@ export const StudentDashboard: React.FC = () => {
                             </CardContent>
                         </Card>
                     </div>
-                )}
+                );
+        }
+    };
+
+    return (
+        <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+            {/* Sidebar */}
+            <UnifiedSidebar
+                activeSection={activeSection}
+                onSectionChange={setActiveSection}
+                userRole="student"
+                userName={user.name}
+                isDarkMode={isDarkMode}
+                onThemeToggle={toggleTheme}
+                onContactAdmin={() => alert("Contacto con admin")}
+            />
+
+            {/* Contenido principal */}
+            <main className="flex-1 overflow-y-auto p-6">
+                {renderContent()}
             </main>
         </div>
     );
